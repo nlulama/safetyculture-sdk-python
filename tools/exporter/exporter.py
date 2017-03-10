@@ -405,20 +405,32 @@ def show_export_profiles_and_exit(list_export_profiles, sc_client):
     if len(list_export_profiles) > 0:
         for template_id in list_export_profiles:
             profile = sc_client.get_export_profile_ids(template_id)
-            template_name = str(profile['export_profiles'][0]['templates'][0]['name'])
-            profile_name = str(profile['export_profiles'][0]['name'])
-            profile_id = str(profile['export_profiles'][0]['id'])
-            print row_format.format(template_name, profile_name, profile_id)
-            print row_boundary
+            if profile is not None:
+                if len(profile['export_profiles']) > 0:
+                    template_name = str(profile['export_profiles'][0]['templates'][0]['name'])
+                    profile_name = str(profile['export_profiles'][0]['name'])
+                    profile_id = str(profile['export_profiles'][0]['id'])
+                    print row_format.format(template_name, profile_name, profile_id)
+                    print row_boundary
+                else:
+                    print "No export profile for ID:", template_id
+            else:
+                print "Could not get profiles from server"
         sys.exit()
     else:
         profiles = sc_client.get_export_profile_ids()
-        for profile in profiles['export_profiles']:
-            template_name = str(profile['templates'][0]['name'])[:19]
-            profile_name = str(profile['name'])[:19]
-            profile_id = str(profile['id'])
-            print row_format.format(template_name, profile_name, profile_id)
-            print row_boundary
+        if profiles is not None:
+            if len(profiles['export_profiles']) > 0:
+                for profile in profiles['export_profiles']:
+                    template_name = str(profile['templates'][0]['name'])[:19]
+                    profile_name = str(profile['name'])[:19]
+                    profile_id = str(profile['id'])
+                    print row_format.format(template_name, profile_name, profile_id)
+                    print row_boundary
+            else:
+                print "No export profiles"
+        else:
+            print "Could not get profiles from server"
         sys.exit(0)
 
 
@@ -497,7 +509,6 @@ def main():
         logger = configure_logger()
         path_to_config_file, export_formats, export_profiles_to_list = parse_command_line_arguments(logger)
         sc_client, settings = configure(logger, path_to_config_file, export_formats)
-
         if export_profiles_to_list is not None:
             show_export_profiles_and_exit(export_profiles_to_list, sc_client)
 
